@@ -1,18 +1,22 @@
 from fastapi import FastAPI
-import pickle
-import numpy as np
+import joblib
+import pandas as pd
+
+# Load your trained model
+model = joblib.load("model.pkl")
 
 app = FastAPI()
 
-# Load the model
-with open("app/model.pkl", "rb") as f:
-    model = pickle.load(f)
-
 @app.get("/")
 def home():
-    return {"message": "Model API is running"}
+    return {"message": "ML Model API is running!"}
 
 @app.post("/predict")
-def predict(features: list):
-    prediction = model.predict(np.array(features).reshape(1, -1))
-    return {"prediction": prediction.tolist()}
+def predict(features: dict):
+    try:
+        # Convert incoming dict to DataFrame
+        df = pd.DataFrame([features])
+        prediction = model.predict(df)
+        return {"prediction": prediction.tolist()}
+    except Exception as e:
+        return {"error": str(e)}
